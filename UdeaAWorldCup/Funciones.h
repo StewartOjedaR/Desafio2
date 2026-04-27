@@ -28,18 +28,18 @@ class Jugador
 {
     char nombre[10] = "nombre";
     char apellido[10] = "apellido";
-    char asistencias, tarjetasRojas, tarjetasAmarillas, faltas;
+    short asistencias, tarjetasRojas, tarjetasAmarillas, faltas;
     short numeroCamiseta, minutosTotales, goles;
 
 public:
-    Jugador(short _num);
-    void actualizarEstadisticas(short goles, char amarillas, char rojas, char faltas, short minutos);
+    Jugador(short _num, short _goles);
+    void actualizarEstadisticas(short goles, short amarillas, short rojas, short faltas, short minutos);
     void migrarCSV();
     void setNumCamiseta();
     void setNombre();
     void setApellido();
-    short getGoles();
-    void getAmonestacion(char roja, char amarilla, char falta);
+    void getGoles();
+    void getAmonestacion();
     short getMinutos();
     void getNombre();
     bool resultadoPartido(bool resultado); // true ganado, false perdido
@@ -66,14 +66,34 @@ private:
 public:
     Seleccion(short _ranking, char *_pais, char *_directorTecnico, char *_federeracion, char *_confederacion, short _golesFavor, short _golesContra, short _partidosGanados, short _partidosEmpatados, short _partidosPerdidos);
     ~Seleccion();
-  //  static Seleccion* obtenerPorNombre(const char *nombreBuscado);
-    void agregarJugador();
     void statsPartido(short golesFavor, short golesContra, char resultado, char amarillas, char rojas, char faltas);
     void mejorarRanking();
     void empeorarRanking();
-    void mostrarPlantilla();
+    static void mostrarPlantilla(const char* _pais);
     static void buscarYMostrar(const char *nombreBuscado);
 };
+void Seleccion::mostrarPlantilla(const char *_pais){
+bool encontrado = false;
+    for (int i = 0; i < contadorEquipos ; i++){
+        if (cadenasIguales(listaEquipos[i]->pais, _pais)){
+            encontrado = true;
+            cout << "Plantilla de " << listaEquipos[i]->pais << ":" << endl;
+            for (int j = 0; j < 26; j++){
+                listaEquipos[i]->jugadores[j]->getNombre();
+                listaEquipos[i]->jugadores[j]->getAmonestacion();
+                listaEquipos[i]->jugadores[j]->getGoles();
+            } 
+            break;
+        }
+    if (encontrado) {
+            break; // Salimos del bucle si encontramos el equipo
+        }
+    }
+    if(!encontrado){
+        cout << "La seleccion '" << _pais << "' no existe." << endl;
+    }
+}
+
 
 Seleccion *Seleccion::listaEquipos[48] = {nullptr};
 short Seleccion::contadorEquipos = 0;
@@ -84,9 +104,9 @@ class Partido
 {
 };
 
-short Jugador::getGoles()
-{
-    return goles;
+void Jugador::getGoles()
+{  
+    cout<<"goles: " << goles << endl;
 }
 /*void Jugador::setNombre(){
     const char name[8] = "nombre";
@@ -113,7 +133,7 @@ void Jugador::setApellido(){
         apellido[i]=nickname[i];
     }
 }*/
-void Jugador::actualizarEstadisticas(short goles, char amarillas, char rojas, char faltas, short minutos)
+void Jugador::actualizarEstadisticas(short goles, short amarillas, short rojas, short faltas, short minutos)
 {
     this->goles += goles;
     this->tarjetasAmarillas += amarillas;
@@ -121,9 +141,9 @@ void Jugador::actualizarEstadisticas(short goles, char amarillas, char rojas, ch
     this->faltas += faltas;
     this->minutosTotales += minutos;
 }
-void Jugador::getAmonestacion(char roja, char amarilla, char falta)
+void Jugador::getAmonestacion()
 {
-    cout << "Jugador " << nombre << " " << apellido << " tiene " << int(amarilla) << " tarjetas amarillas, " << int(roja) << " tarjetas rojas y " << int(falta) << " faltas." << endl;
+    cout << "Jugador " << nombre << " " << apellido << " tiene " << int(tarjetasAmarillas) << " tarjetas amarillas, " << int(tarjetasRojas) << " tarjetas rojas y " << int(faltas) << " faltas." << endl;
 }
 void Jugador::migrarCSV()
 {
@@ -235,7 +255,7 @@ void crearSelecciones(char file[])
 
 Seleccion::Seleccion(short _ranking, char *_pais, char *_directorTecnico, char *_federeracion, char *_confederacion, short _golesFavor, short _golesContra, short _partidosGanados, short _partidosEmpatados, short _partidosPerdidos)
 {
-ranking = _ranking;
+    ranking = _ranking;
     golesFavor = _golesFavor;
     golesContra = _golesContra;
     partidosGanados = _partidosGanados;
@@ -279,10 +299,16 @@ ranking = _ranking;
     }
     jugadores = new Jugador *[26];
     short num = 1;
+short n=1;
     for (int i = 0; i < 26; i++)
     {
-        jugadores[i] = new Jugador(num);
+        jugadores[i] = new Jugador(num, n);
         num++;
+        _golesFavor--;
+        if (_golesFavor < 0)
+        {
+            n = 0;
+        }
     }
 }
 Seleccion::~Seleccion()
@@ -294,13 +320,14 @@ Seleccion::~Seleccion()
     delete[] jugadores;
 } // Borramos el arreglo de punteros;
 
-Jugador::Jugador(short _num)
+Jugador::Jugador(short _num, short _goles)
 {
     numeroCamiseta = _num;
     tarjetasAmarillas = 0;
     tarjetasRojas = 0;
     asistencias = 0;
     minutosTotales = 0;
-    goles = 0;
+    goles = _goles;
 }
+
 #endif // FUNCIONES_H
